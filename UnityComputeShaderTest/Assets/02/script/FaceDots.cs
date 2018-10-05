@@ -3,18 +3,21 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public class Cubes : MonoBehaviour{
+public class FaceDots : MonoBehaviour{
 
-    struct CubeData
+    struct DotData
     {
         public Vector3 position;
         public Vector3 velocity;
         public Vector4 color;
         public Vector3 basePos;
+        public Vector3 scale;
         public Vector2 uv;
-
+        //public Vector3 rotation;
+        public float time;        
     }
 
+    [SerializeField] private Mesh _posMesh;
     [SerializeField] int _num = 10000;
     [SerializeField] int _numX = 256; 
     [SerializeField] int _numY = 256;
@@ -33,14 +36,18 @@ public class Cubes : MonoBehaviour{
 
     private float _time = 0;
 
+    private Vector4[] _positions;
+
     void Start(){
+
+        //yatteikou
 
         _num = _numX * _numY;
 
-        _cubeDataBuffer = new ComputeBuffer(_num, Marshal.SizeOf(typeof(CubeData)));
+        _cubeDataBuffer = new ComputeBuffer(_num, Marshal.SizeOf(typeof(DotData)));
         _argsBuffer = new ComputeBuffer(1, _args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
 
-        var dataArr = new CubeData[_num];
+        var dataArr = new DotData[_num];
 
         //float width = 10f;
         float height = width * (float)_numY / _numX;
@@ -51,28 +58,27 @@ public class Cubes : MonoBehaviour{
 
                 float rx = (float)i/(_numX-1);
                 float ry = (float)j/(_numY-1);
-                dataArr[idx] = new CubeData();
+                dataArr[idx] = new DotData();
                 dataArr[idx].position = new Vector3(
                     (rx-0.5f) * width,
                     (ry-0.5f) * height,
                     0
                 );
+                dataArr[idx].scale = Vector3.one;
                 dataArr[idx].basePos = new Vector3(
                     (rx-0.5f) * width,
                     (ry-0.5f) * height,
                     0
                 );
-
                 dataArr[idx].velocity = new Vector3(
                     0.01f * ( Random.value - 0.5f ),
                     0.01f * ( Random.value - 0.5f ),
                     0.01f * ( Random.value - 0.5f )
                 );
 
-                //var col = _src.GetPixel(
-                 //   Mathf.FloorToInt(rx*(_src.width-1)),
-                //    Mathf.FloorToInt(ry*(_src.height-1))
-                //);
+                dataArr[idx].time = Random.value;
+
+                //dataArr[idx].rotation = Vector3.zero;
 
                 dataArr[idx].color = new Vector4(
                     0,
@@ -90,6 +96,22 @@ public class Cubes : MonoBehaviour{
         }
         _cubeDataBuffer.SetData(dataArr);
         
+        _positions = new Vector4[3000];
+        
+        
+        //meshを取得する
+        for(int i=0;i<_positions.Length;i++){
+            //int ii = Mathf.FloorToInt( _posMesh.vertexCount * Random.value );
+            //Vector3 vv = _posMesh.vertices[ii];
+
+            Vector3 vv = Utils.RandomPointOnMesh.Sample( _posMesh );
+
+            _positions[i] = new Vector4(
+                vv.x,vv.y,vv.z,
+                Random.value - 0.5f
+            );
+        }
+
     }
 
 
@@ -99,15 +121,10 @@ public class Cubes : MonoBehaviour{
 
 
             // ComputeShader
-            _time += Time.deltaTime;
-            if(_time>3f){
-                _time = 0;
-                //_computeShader.SetVector
-                //_cubeDataBuffer.GetData()
-            }
 
             int kernelId = _computeShader.FindKernel("MainCS");
-            _computeShader.SetFloat("_Time", _time);
+            _computeShader.SetFloat("_DeltaTime", Time.deltaTime);
+            _computeShader.SetVectorArray("_Positions", _positions);
             _computeShader.SetBuffer(kernelId, "_CubeDataBuffer", _cubeDataBuffer);
             _computeShader.Dispatch(kernelId, (Mathf.CeilToInt(_num / ThreadBlockSize) + 1), 1, 1);
 
@@ -124,6 +141,7 @@ public class Cubes : MonoBehaviour{
             _material.SetMatrix("_modelMatrix", transform.localToWorldMatrix );
             _material.SetFloat("_Size",_size);
             _material.SetVector("_Num",new Vector4(_numX,_numY,0,0));
+            
             Graphics.DrawMeshInstancedIndirect(
                 _mesh,
                 0, 

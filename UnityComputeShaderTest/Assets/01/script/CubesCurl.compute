@@ -20,12 +20,13 @@ struct CubeData
     float4 color;
     float3 basePos;
     float2 uv;
+    float time;
 };
 
 // ドカベンロゴのバッファ
 RWStructuredBuffer<CubeData> _CubeDataBuffer;//_DokabenDataBuffer;
 float _Time;
-
+float4  _Positions[1000];
 
 float rand(float3 co)
 {
@@ -99,7 +100,8 @@ void MainCS(uint3 id : SV_DispatchThreadID)
 
     if(_Time==0){
         _CubeDataBuffer[index].velocity = curlNoise(pos) * 0.00001;//0.3;
-        _CubeDataBuffer[index].position = _CubeDataBuffer[index].basePos;
+        int ii = index % 1000;
+        _CubeDataBuffer[index].position = _Positions[ii].xyz;//_CubeDataBuffer[index].basePos;
     }
 
     //float s = saturate( (_Time-2.0) * 0.1 );

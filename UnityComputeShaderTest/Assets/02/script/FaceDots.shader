@@ -1,4 +1,4 @@
-Shader "CubesDepth"
+Shader "FaceDot"
 {
 	Properties
 	{
@@ -31,18 +31,21 @@ Shader "CubesDepth"
             float4 col;//position  : POSITION;
 		};
 		// Boidの構造体
-		struct CubeData
+		struct DotData
 		{
 			float3 position;
 			float3 velocity;
+			float3 scale;
+			//float3 rotation;
 			float4 color;
 			float3 basePos;
 			float2 uv;
+			float time;
 		};
 
 		#ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
 			// Boidデータの構造体バッファ
-			StructuredBuffer<CubeData> _CubeDataBuffer;
+			StructuredBuffer<DotData> _CubeDataBuffer;
 		#endif
 
 		sampler2D _MainTex; // テクスチャ
@@ -84,7 +87,7 @@ Shader "CubesDepth"
 			#ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
 
 			// インスタンスIDからBoidのデータを取得
-			CubeData cubeData = _CubeDataBuffer[unity_InstanceID]; 
+			DotData cubeData = _CubeDataBuffer[unity_InstanceID]; 
 
 			float3 pos = cubeData.position.xyz; // Boidの位置を取得
 			//float3 scl = float3(_Size,_Size,_Size);//_ObjectScale;          // Boidのスケールを取得
@@ -128,7 +131,7 @@ Shader "CubesDepth"
 
 			
 			
-			v.vertex = mul(object2world, v.vertex);
+			v.vertex = mul(object2world, v.vertex);/////////////
 			// 法線を座標変換
 			v.normal = normalize(mul(object2world, v.normal));
 
