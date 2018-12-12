@@ -1,7 +1,7 @@
 #pragma kernel MainCS
 
 //#include "UnityCG.cginc"
-#include "./CGINC/SimplexNoise3Db.cginc"
+#include "../../01/script/CGINC/SimplexNoise3Db.cginc"
 
 
 // スレッドグループのスレッドサイズ
@@ -104,7 +104,7 @@ void MainCS(uint3 id : SV_DispatchThreadID)
             rand(_CubeDataBuffer[index].basePos.xy + 100.0) - 0.5,
             rand(_CubeDataBuffer[index].basePos.xy + 200.0) - 0.5
         );
-        _CubeDataBuffer[index].velocity = vv * 0.01;
+        _CubeDataBuffer[index].velocity = vv * 0.005;
         //curlNoise(_CubeDataBuffer[index].basePos) * 0.0005;//0.3;
         //int ii = index % 1000;
         _CubeDataBuffer[index].position = _CubeDataBuffer[index].basePos;
@@ -116,9 +116,9 @@ void MainCS(uint3 id : SV_DispatchThreadID)
     //float3 pp = _CubeDataBuffer[index].basePos.xyz * snoise(float3(pos.x,pos.y,pos.z+_Time.z));
     //_CubeDataBuffer[index].velocity = s * 0.01 * snoise_grad(pp);
     
-    float3 force = curlNoise(pos*0.5) - _CubeDataBuffer[index].velocity.xyz;
-    
-    _CubeDataBuffer[index].velocity += force * 0.00001;
+    float3 force = curlNoise(pos * 3.0) - _CubeDataBuffer[index].velocity.xyz;
+    _CubeDataBuffer[index].time = _Time - _CubeDataBuffer[index].color.x;
+    _CubeDataBuffer[index].velocity += force * 0.000005;
     _CubeDataBuffer[index].velocity *= 0.99;//force * 0.001;
     _CubeDataBuffer[index].position += _CubeDataBuffer[index].velocity;
 

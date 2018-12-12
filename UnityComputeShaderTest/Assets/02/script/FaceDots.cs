@@ -42,6 +42,9 @@ public class FaceDots : MonoBehaviour{
 
         //yatteikou
 
+        //頂点の数ぶん、やって見るテスト
+
+
         _num = _numX * _numY;
 
         _cubeDataBuffer = new ComputeBuffer(_num, Marshal.SizeOf(typeof(DotData)));

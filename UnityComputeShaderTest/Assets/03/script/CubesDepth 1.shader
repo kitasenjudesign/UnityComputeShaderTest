@@ -1,4 +1,4 @@
-Shader "CubesDepth"
+Shader "CubesDepth1"
 {
 	Properties
 	{
@@ -92,7 +92,11 @@ Shader "CubesDepth"
 
 			float ss = saturate(_Amount);
 			//float3 scl = float3(_Size-ss*0.02,_Size-ss*0.02,_Size-ss*0.02);//_ObjectScale;          // Boidのスケールを取得
-			float3 scl = float3(_Size,_Size,_Size);//_ObjectScale;          // Boidのスケールを取得
+
+			float scaleRatio = 1.0 - cubeData.time/4.0;
+			scaleRatio = max(scaleRatio,0);
+
+			float3 scl = float3(_Size,_Size,_Size) * scaleRatio;//_ObjectScale;          // Boidのスケールを取得
 
 			float4 cc1 = tex2Dlod( _MainTex, float4(_CubeDataBuffer[unity_InstanceID].uv,0,0) );
 			float4 cc2 = tex2Dlod( _MainTex2, float4(_CubeDataBuffer[unity_InstanceID].uv,0,0) );

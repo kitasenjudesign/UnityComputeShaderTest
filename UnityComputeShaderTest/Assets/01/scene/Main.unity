@@ -240,8 +240,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _posMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
   _num: 10000
-  _numX: 256
-  _numY: 256
+  _numX: 512
+  _numY: 512
   width: 2.46
   _size: 0.01
   _mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}

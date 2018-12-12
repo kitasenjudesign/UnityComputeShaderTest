@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public class Cubes : MonoBehaviour{
+public class MeshParticle : MonoBehaviour{
 
     struct CubeData
     {
@@ -17,10 +17,6 @@ public class Cubes : MonoBehaviour{
 
     [SerializeField] private Mesh _posMesh;
     [SerializeField] int _num = 10000;
-    [SerializeField] int _numX = 256; 
-    [SerializeField] int _numY = 256;
-    //[SerializeField] Texture2D _src;
-    [SerializeField] float width;
     [SerializeField,Range(0.001f,1f)] float _size;//_Size ("_Size", Range(0.04,0.1)) = 0.04
 
     int ThreadBlockSize = 256;
@@ -31,16 +27,16 @@ public class Cubes : MonoBehaviour{
     [SerializeField] private Mesh _mesh;
     [SerializeField] ComputeShader _computeShader;
     [SerializeField] private Material _material;
-
+    private MeshRenderer _renderer;
     private float _time = 0;
-
+    private MaterialPropertyBlock _property;
     private Vector4[] _positions;
 
     void Start(){
 
-        _num = _numX * _numY;
-        float height = width * (float)_numY / _numX;
-
+        _num = Mathf.FloorToInt( _posMesh.vertexCount );
+        _property = new MaterialPropertyBlock();
+        _renderer = GetComponent<MeshRenderer>();
 
         //コンピュートバッファ用意
         _cubeDataBuffer = new ComputeBuffer(_num, Marshal.SizeOf(typeof(CubeData)));
@@ -49,45 +45,29 @@ public class Cubes : MonoBehaviour{
 
         //----------初期値を設定。
         var dataArr = new CubeData[_num];
-        int idx = 0;
-        for (int i = 0; i < _numX; ++i){
-            for (int j = 0; j < _numY; ++j){
+        var vertices = _posMesh.vertices;
+        var uv = _posMesh.uv;
+        for (int i = 0; i < _num; ++i){
+            dataArr[i] = new CubeData();
+            dataArr[i].position = vertices[i];
+            dataArr[i].basePos = vertices[i];
 
-                float rx = (float)i/(_numX-1);
-                float ry = (float)j/(_numY-1);
-                dataArr[idx] = new CubeData();
-                dataArr[idx].position = new Vector3(
-                    (rx-0.5f) * width,
-                    (ry-0.5f) * height,
-                    0
-                );
-                dataArr[idx].basePos = new Vector3(
-                    (rx-0.5f) * width,
-                    (ry-0.5f) * height,
-                    0
-                );
+            dataArr[i].velocity = new Vector3(
+                0.01f * ( Random.value - 0.5f ),
+                0.01f * ( Random.value - 0.5f ),
+                0.01f * ( Random.value - 0.5f )
+            );
+            dataArr[i].time = Random.value;
+            float delay = Mathf.Abs( vertices[i].x * 10f );
+            //Debug.Log(delay);
+            dataArr[i].color = new Vector4(
+                delay,
+                Random.value,
+                Random.value,
+                1f
+            );
 
-                dataArr[idx].velocity = new Vector3(
-                    0.01f * ( Random.value - 0.5f ),
-                    0.01f * ( Random.value - 0.5f ),
-                    0.01f * ( Random.value - 0.5f )
-                );
-
-                dataArr[idx].time = Random.value;
-
-                dataArr[idx].color = new Vector4(
-                    0,
-                    0,
-                    0,
-                    1f
-                );
-
-                dataArr[idx].uv = new Vector2(
-                    (float) i / (_numX),
-                    (float) j / (_numY)
-                );
-                idx++;
-            }
+            dataArr[i].uv = uv[i];
         }
 
         //----------初期値をコンピュートバッファに入れる
@@ -95,22 +75,7 @@ public class Cubes : MonoBehaviour{
         
 
 
-        
-        
-        //
-        _positions = new Vector4[1000];
-        for(int i=0;i<_positions.Length;i++){
-            //int ii = Mathf.FloorToInt( _posMesh.vertexCount * Random.value );
-            //Vector3 vv = _posMesh.vertices[ii];
-
-            Vector3 vv = Utils.RandomPointOnMesh.Sample( _posMesh );
-
-            _positions[i] = new Vector4(
-                vv.x,vv.y,vv.z,
-                Random.value - 0.5f
-            );
-        }
-
+        GetComponent<MeshRenderer>().enabled=false;
     }
 
 
@@ -122,11 +87,14 @@ public class Cubes : MonoBehaviour{
         _time += Time.deltaTime;
         if(_time>8f){
             _time = 0;//じかん
+            GetComponent<MeshRenderer>().enabled=false;
+        }else if(_time>5f){
+            GetComponent<MeshRenderer>().enabled=true;
         }
 
         int kernelId = _computeShader.FindKernel("MainCS");
         _computeShader.SetFloat("_Time", _time);
-        _computeShader.SetVectorArray("_Positions", _positions);
+        //_computeShader.SetVectorArray("_Positions", _positions);
         _computeShader.SetBuffer(kernelId, "_CubeDataBuffer", _cubeDataBuffer);
         _computeShader.Dispatch(kernelId, (Mathf.CeilToInt(_num / ThreadBlockSize) + 1), 1, 1);
 
@@ -138,11 +106,15 @@ public class Cubes : MonoBehaviour{
         _argsBuffer.SetData(_args);
 
         // GPU Instaicing
+
         _material.SetBuffer("_CubeDataBuffer", _cubeDataBuffer);//データを渡す
         //_material.SetVector("_DokabenMeshScale", this._DokabenMeshScale);
         _material.SetMatrix("_modelMatrix", transform.localToWorldMatrix );
         _material.SetFloat("_Size",_size);
-        _material.SetVector("_Num",new Vector4(_numX,_numY,0,0));
+
+        //_renderer.SetPropertyBlock(_property);
+
+        //_material.SetVector("_Num",new Vector4(_numX,_numY,0,0));
         
         Graphics.DrawMeshInstancedIndirect(
             _mesh,
@@ -152,7 +124,7 @@ public class Cubes : MonoBehaviour{
             _argsBuffer,//Indirectには必要なんか
             0,
             null,
-            ShadowCastingMode.Off,
+            ShadowCastingMode.On,
             false
         );
         
