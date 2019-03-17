@@ -37,6 +37,7 @@ public class FaceDots : MonoBehaviour{
     private float _time = 0;
 
     private Vector4[] _positions;
+    private Vector4[] _uvs;
 
     void Start(){
 
@@ -99,20 +100,26 @@ public class FaceDots : MonoBehaviour{
         }
         _cubeDataBuffer.SetData(dataArr);
         
-        _positions = new Vector4[3000];
-        
+        _positions = new Vector4[2000];
+        _uvs = new Vector4[2000];
         
         //meshを取得する
         for(int i=0;i<_positions.Length;i++){
             //int ii = Mathf.FloorToInt( _posMesh.vertexCount * Random.value );
             //Vector3 vv = _posMesh.vertices[ii];
 
-            Vector3 vv = Utils.RandomPointOnMesh.Sample( _posMesh );
+            //Vector3 vv = Utils.RandomPointOnMesh.Sample( _posMesh );
+            var d = Utils.RandomPointOnMesh.Sample2( _posMesh );
 
             _positions[i] = new Vector4(
-                vv.x,vv.y,vv.z,
+                d.v.x,d.v.y,d.v.z,
                 Random.value - 0.5f
             );
+            _uvs[i] = new Vector4(
+                d.uv.x,
+                d.uv.y,0,0
+            );
+
         }
 
     }
@@ -128,6 +135,8 @@ public class FaceDots : MonoBehaviour{
             int kernelId = _computeShader.FindKernel("MainCS");
             _computeShader.SetFloat("_DeltaTime", Time.deltaTime);
             _computeShader.SetVectorArray("_Positions", _positions);
+            _computeShader.SetVectorArray("_Uvv", _uvs);
+            
             _computeShader.SetBuffer(kernelId, "_CubeDataBuffer", _cubeDataBuffer);
             _computeShader.Dispatch(kernelId, (Mathf.CeilToInt(_num / ThreadBlockSize) + 1), 1, 1);
 

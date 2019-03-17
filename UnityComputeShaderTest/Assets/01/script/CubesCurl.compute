@@ -6,15 +6,11 @@
 
 // スレッドグループのスレッドサイズ
 #define ThreadBlockSize 256
-// アニメーションテーブルのサイズ
-#define AnimationLength 16
-
 #define EPSILON 1e-3
 
 // data
 struct CubeData
 {
-    // 座標
     float3 position;
     float3 velocity;
     float4 color;
@@ -23,8 +19,7 @@ struct CubeData
     float time;
 };
 
-// ドカベンロゴのバッファ
-RWStructuredBuffer<CubeData> _CubeDataBuffer;//_DokabenDataBuffer;
+RWStructuredBuffer<CubeData> _CubeDataBuffer;
 float _Time;
 float4  _Positions[1000];
 
@@ -62,40 +57,9 @@ float rand(float2 co)
 [numthreads(ThreadBlockSize, 1, 1)]
 void MainCS(uint3 id : SV_DispatchThreadID)
 {
-    // インデックス取得
+   
     const unsigned int index = id.x;
 
-    // 時間の正弦を算出(ShaderLabの"_SinTime"の代わり)
-    // →序にアニメーション開始位置のバッファを加算してアニメーションをずらせるように設定
-    //float sinTime = sin((_Time*_AnimationSpeed)+_AnimationStartPositionBuffer[index]);
-
-    // sinTime0~1に正規化 →0~15(コマ数分)の範囲にスケールして要素数として扱う
-    //float normal = (sinTime+1)/2;
-    // X軸に90度回転
-    //float rot = Animation[round(normal*(AnimationLength-1))]*radians(90);
-
-    // 回転行列
-    //float sinX = sin(rot);
-    //float cosX = cos(rot);
-
-    /*
-    float3 pos = _Particles[id].position;
-
-    float3 velocity = CurlNoise(_Particles[id]);
-
-    _Particles[id].velocity = velocity * _SpeedFactor * _CurlNoiseIntencity;
-    _Particles[id].position += _Particles[id].velocity * _DeltaTime;
-
-    _Particles[id].time += _DeltaTime;
-    float scale = 1.0 - (_Particles[id].time / _Particles[id].lifeTime);
-    if (scale < 0)
-    {
-        _Particles[id].active = false;
-        return;
-    }
-
-    _Particles[id].scale = scale;
-    */
     float3 pos = _CubeDataBuffer[index].position;
 
     if(_Time==0){
@@ -105,49 +69,13 @@ void MainCS(uint3 id : SV_DispatchThreadID)
             rand(_CubeDataBuffer[index].basePos.xy + 200.0) - 0.5
         );
         _CubeDataBuffer[index].velocity = vv * 0.01;
-        //curlNoise(_CubeDataBuffer[index].basePos) * 0.0005;//0.3;
-        //int ii = index % 1000;
         _CubeDataBuffer[index].position = _CubeDataBuffer[index].basePos;
-        //_Positions[ii].xyz;
     }
 
-    //float s = saturate( (_Time-2.0) * 0.1 );
-    
-    //float3 pp = _CubeDataBuffer[index].basePos.xyz * snoise(float3(pos.x,pos.y,pos.z+_Time.z));
-    //_CubeDataBuffer[index].velocity = s * 0.01 * snoise_grad(pp);
-    
     float3 force = curlNoise(pos*0.5) - _CubeDataBuffer[index].velocity.xyz;
     
     _CubeDataBuffer[index].velocity += force * 0.00001;
     _CubeDataBuffer[index].velocity *= 0.99;//force * 0.001;
     _CubeDataBuffer[index].position += _CubeDataBuffer[index].velocity;
-
-    //_CubeDataBuffer[index].position.x = _CubeDataBuffer[index].basePos.x;
-    //_CubeDataBuffer[index].position.y = _CubeDataBuffer[index].basePos.y;
-    //_CubeDataBuffer[index].position.z = _CubeDataBuffer[index].basePos.z;
-
-
-
-    /*
-    float3 pos = _Particles[id].position;
-
-    float3 velocity = CurlNoise(_Particles[id]);
-
-    _Particles[id].velocity = velocity * _SpeedFactor * _CurlNoiseIntencity;
-    _Particles[id].position += _Particles[id].velocity * _DeltaTime;
-
-    _Particles[id].time += _DeltaTime;
-    float scale = 1.0 - (_Particles[id].time / _Particles[id].lifeTime);
-    if (scale < 0)
-    {
-        _Particles[id].active = false;
-        return;
-    }
-
-    _Particles[id].scale = scale;
-    */
-
-
-    //_CubeDataBuffer[index].Rotation = float2x2(cosX, -sinX, sinX, cosX);
 
 }

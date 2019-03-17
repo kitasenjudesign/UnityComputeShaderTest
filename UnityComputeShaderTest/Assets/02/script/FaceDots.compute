@@ -3,12 +3,8 @@
 //#include "UnityCG.cginc"
 #include "./CGINC/SimplexNoise3Db.cginc"
 
-
 // スレッドグループのスレッドサイズ
 #define ThreadBlockSize 256
-// アニメーションテーブルのサイズ
-#define AnimationLength 16
-
 #define EPSILON 1e-3
 
 // data
@@ -25,11 +21,10 @@ struct DotData
     float time;
 };
 
-// ドカベンロゴのバッファ
-RWStructuredBuffer<DotData> _CubeDataBuffer;//_DokabenDataBuffer;
+RWStructuredBuffer<DotData> _CubeDataBuffer;
 float _DeltaTime;
-float4  _Positions[3000];
-
+float4 _Positions[2000];
+float4 _Uvv[2000];
 
 float rand(float3 co)
 {
@@ -69,21 +64,28 @@ void MainCS(uint3 id : SV_DispatchThreadID)
     const unsigned int index = id.x;
 
     float3 pos = _CubeDataBuffer[index].position;
+    DotData data = _CubeDataBuffer[index];
 
-   _CubeDataBuffer[index].time += _DeltaTime;
+   data.time += _DeltaTime;
 
-    if( _CubeDataBuffer[index].time > 3.0 ){
+    if( data.time > 3.0 ){
         //0.3;
-        _CubeDataBuffer[index].time = 0;
-        int ii = index % 3000;
-        _CubeDataBuffer[index].position = _Positions[ii].xyz;///_CubeDataBuffer[index].basePos;
+        data.time = 0;
+
+        int ii = index % 1000;
+        data.position = _Positions[ii].xyz;///_CubeDataBuffer[index].basePos;
+        data.uv = float2(
+            _Uvv[ii].x,
+            _Uvv[ii].y
+        );//_Uvs[ii].xy;///_CubeDataBuffer[index].basePos;
         
     }
 
     //_CubeDataBuffer[index].velocity *= 0.99;//force * 0.001;
-    _CubeDataBuffer[index].velocity = curlNoise(pos) * 0.001;
+    data.velocity = curlNoise(pos) * 0.001;
     //_CubeDataBuffer[index].rotation.x += 0.5;
-    _CubeDataBuffer[index].position += _CubeDataBuffer[index].velocity;
+    data.position += _CubeDataBuffer[index].velocity;
 
+    _CubeDataBuffer[index] = data;
 
 }
