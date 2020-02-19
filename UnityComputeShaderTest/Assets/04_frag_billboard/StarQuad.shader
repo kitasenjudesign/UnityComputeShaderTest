@@ -2,7 +2,8 @@ Shader "StarQuad"
 {
     Properties
     {
-        _Color ("Color", Color) = (0,0,1,1)
+        _Color ("Color", Color) = (1,1,1,1)
+		_MainTex ("_MainTex", 2D) = "white" {}
     }
 
     SubShader
@@ -68,33 +69,27 @@ Shader "StarQuad"
 
                 // スケールと位置(平行移動)を適用
                 float4x4 matrix_ = (float4x4)0;
-                matrix_._11_22_33_44 = float4(0.01,0.01,0.01, 1.0);//scale
+                matrix_._11_22_33_44 = float4(0.05,0.05,0.05, 1.0);//scale
                 matrix_._14_24_34 += _CubeDataBuffer[instanceID].position;//translate
-                v.vertex = mul(matrix_, v.vertex);
+                //v.vertex = mul(matrix_, v.vertex);//world座標
 
-				//billboad
-                   
-                    float3 viewPos = UnityObjectToViewPos(float3(0, 0, 0));
-                    
-                    // スケールと回転（平行移動なし）だけModel変換して、View変換はスキップ
-                    float3 scaleRotatePos = mul((float3x3)unity_ObjectToWorld, v.vertex);
-                    
-                    // scaleRotatePosを右手系に変換して、viewPosに加算
-                    // 本来はView変換で暗黙的にZが反転されているので、
-                    // View変換をスキップする場合は明示的にZを反転する必要がある
-                    viewPos += float3(scaleRotatePos.xy, -scaleRotatePos.z);
-                    
-                    o.vertex = mul(UNITY_MATRIX_P, float4(viewPos, 1));
+				// billboard mesh towards camera
+				float3 vpos = mul((float3x3)matrix_, v.vertex.xyz);
+				float4 worldCoord = float4(matrix_._m03, matrix_._m13, matrix_._m23, 1);
+				float4 viewPos = mul(UNITY_MATRIX_V, worldCoord) + float4(vpos, 0);
+				float4 outPos = mul(UNITY_MATRIX_P, viewPos);
 
+                o.vertex = outPos;
+                //o.vertex = UnityObjectToClipPos(v.vertex);
+                o.texcoord = v.texcoord;
 
-                o.vertex = UnityObjectToClipPos(v.vertex);
-               // o.texcoord = TRANSFORM_TEX(v.texcoord, _MainTex);
                 return o;
             }
 
             fixed4 frag (v2f i) : SV_Target
             {
-                fixed4 col = _Color;//tex2D(_MainTex, i.texcoord);
+                fixed4 col = tex2D(_MainTex, i.texcoord) * _Color;
+                clip(col.a-0.5);
                 return col;
             }
             ENDCG

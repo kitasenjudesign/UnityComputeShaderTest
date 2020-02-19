@@ -7,7 +7,6 @@ Shader "Star"
 		_MainTex ("_MainTex", 2D) = "white" {}
 		_MainTex2 ("_MainTex2", 2D) = "white" {}
 
-
 		_Glossiness ("Smoothness", Range(0,1)) = 0.5
 		_Metallic ("Metallic", Range(0,1)) = 0.0
 		_Amount ("_Amount", Range(0,10)) = 0.0
@@ -166,7 +165,7 @@ Shader "Star"
 			fixed4 c2 = tex2D (_MainTex2, IN.col.xy + r );//IN.col.xy + r );
 			*/
 			
-			o.Albedo = fixed3(1,1,0);//tex2D (_MainTex, IN.col.xy).rgb;//lerp(c1.rgb,c2.rgb,_Ratio);//IN.col.xyz;//c.rgb;// * IN.color.xyz;
+			o.Albedo = fixed3(1,1,1);//tex2D (_MainTex, IN.col.xy).rgb;//lerp(c1.rgb,c2.rgb,_Ratio);//IN.col.xyz;//c.rgb;// * IN.color.xyz;
 			o.Metallic = _Metallic;
 			//o.Emission = IN.col.xyz*0.3;
 			o.Smoothness = _Glossiness;

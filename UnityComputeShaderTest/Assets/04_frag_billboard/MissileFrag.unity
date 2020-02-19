@@ -131,6 +131,7 @@ GameObject:
   - component: {fileID: 894916476}
   - component: {fileID: 894916475}
   - component: {fileID: 894916474}
+  - component: {fileID: 894916477}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -202,6 +203,52 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &894916477
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 894916473}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd5f45b841d80a44e8f2885c0fe19133, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 1412272861}
+  zoomDistance: 5
+  maxDistance: 100
+  minDistance: 0
+--- !u!1 &1412272860
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1412272861}
+  m_Layer: 0
+  m_Name: origin
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1412272861
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1412272860}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1758551039
 GameObject:
@@ -542,12 +589,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _prefab: {fileID: 1758551044}
   _targets: []
-  _posMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  _posMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   _num: 5000
   _numX: 256
   _numY: 256
   width: 0.45
   _size: 0.01
-  _mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  _mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   _computeShader: {fileID: 7200000, guid: 3d1bab0e2a2282c40bec9291bb6fadb4, type: 3}
   _material: {fileID: 2100000, guid: 34a592f0f0217d247bcb8dfd964eb130, type: 2}
