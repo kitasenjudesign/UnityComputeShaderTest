@@ -85,22 +85,12 @@ Shader "Star"
 
 			#ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
 
-			// インスタンスIDからBoidのデータを取得
+			
 			CubeData cubeData = _CubeDataBuffer[unity_InstanceID]; 
-
-			float3 pos = cubeData.position.xyz; // Boidの位置を取得
-			//float3 scl = float3(_Size,_Size,_Size);//_ObjectScale;          // Boidのスケールを取得
-
-			//float ss = saturate(_Amount);
+			float3 pos = cubeData.position.xyz;
 			float ss = cubeData.color.x;
 			
-			//float3 scl = float3(_Size-ss*0.02,_Size-ss*0.02,_Size-ss*0.02);//_ObjectScale;          // Boidのスケールを取得
 			float3 scl = float3(ss*_Size*0.3,ss*_Size*0.3,ss*_Size*4.0) * (1-cubeData.time/_Duration);          // Boidのスケールを取得
-
-			float4 cc1 = tex2Dlod( _MainTex, float4(_CubeDataBuffer[unity_InstanceID].uv,0,0) );
-			float4 cc2 = tex2Dlod( _MainTex2, float4(_CubeDataBuffer[unity_InstanceID].uv,0,0) );
-			float4 cc = lerp(cc1,cc2,_Ratio);
-
 
 			// オブジェクト座標からワールド座標に変換する行列を定義
 			float4x4 object2world = (float4x4)0; 
@@ -117,32 +107,21 @@ Shader "Star"
 			float4x4 rotMatrix = eulerAnglesToRotationMatrix(float3(rotX, rotY, 0));
 
 
-
 			// 行列に回転を適用
 			object2world = mul(rotMatrix, object2world);
 			// 行列に位置（平行移動）を適用
-
-			float zz = sin(length( cc.rgb )*3.14*2 + _Time.x * _Speed) * 3 * _Amount;
-
-			object2world._14_24_34 += pos.xyz + float3(0,0,zz);
+			object2world._14_24_34 += pos.xyz;
 
 			// 頂点を座標変換
 
 			//親のモデルマトリックスも噛ませます
 			object2world = mul(_modelMatrix, object2world);//test desu
 			
-			//Color取得
-			//float3 cc = _CubeDataBuffer[unity_InstanceID].color.xyz;
-
-
-			
-			
 			v.vertex = mul(object2world, v.vertex);
 			// 法線を座標変換
 			v.normal = normalize(mul(object2world, v.normal));
 
 			//ここで色を渡している
-			//o.col = cc;//_CubeDataBuffer[unity_InstanceID].color;//色
 			o.col = float4(_CubeDataBuffer[unity_InstanceID].uv,0,0);//uv
 
 			#endif

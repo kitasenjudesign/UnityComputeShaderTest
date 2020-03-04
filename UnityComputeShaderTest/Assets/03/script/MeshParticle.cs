@@ -108,14 +108,9 @@ public class MeshParticle : MonoBehaviour{
         // GPU Instaicing
 
         _material.SetBuffer("_CubeDataBuffer", _cubeDataBuffer);//データを渡す
-        //_material.SetVector("_DokabenMeshScale", this._DokabenMeshScale);
         _material.SetMatrix("_modelMatrix", transform.localToWorldMatrix );
         _material.SetFloat("_Size",_size);
 
-        //_renderer.SetPropertyBlock(_property);
-
-        //_material.SetVector("_Num",new Vector4(_numX,_numY,0,0));
-        
         Graphics.DrawMeshInstancedIndirect(
             _mesh,
             0, 
