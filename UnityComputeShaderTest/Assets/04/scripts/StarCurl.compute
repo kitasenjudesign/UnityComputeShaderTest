@@ -21,6 +21,7 @@ struct CubeData
 
 RWStructuredBuffer<CubeData> _CubeDataBuffer;
 float _Time;
+float _Duration;
 float4 _Positions[100];
 float4 _Velocities[100]; 
 
@@ -63,8 +64,9 @@ void MainCS(uint3 id : SV_DispatchThreadID)
 
     float3 pos = _CubeDataBuffer[index].position;
 
-    if( _CubeDataBuffer[index].time>5){
-         _CubeDataBuffer[index].time=0;
+    if( _CubeDataBuffer[index].time>_Duration){
+
+         _CubeDataBuffer[index].time=_CubeDataBuffer[index].time-_Duration;
         //float3 vv = _CubeDataBuffer[index].basePos.xyz;
         _CubeDataBuffer[index].velocity = - _Velocities[ index%100 ] * 0.02 + 0.008*float4(
             rand(pos.xy)-0.5,

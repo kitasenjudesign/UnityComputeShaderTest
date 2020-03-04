@@ -13,7 +13,6 @@ Shader "Star"
 		_Speed  ("_Speed", float) = 1
 		_Ratio ("_Ratio", Range(0,1)) = 0
 		_Size ("_Size", Range(0.01,0.1)) = 0.04
-		_Num("_Num", Vector) = (0,0,0,2)
 	}
 	SubShader
 	{
@@ -56,7 +55,7 @@ Shader "Star"
 		float _Speed;
 		float _Ratio;
 		float _Scale;
-		float4 _Num;
+		float _Duration;
 		float3 _ObjectScale; // Boidオブジェクトのスケール
 		float4x4 _modelMatrix;
 
@@ -96,7 +95,7 @@ Shader "Star"
 			float ss = cubeData.color.x;
 			
 			//float3 scl = float3(_Size-ss*0.02,_Size-ss*0.02,_Size-ss*0.02);//_ObjectScale;          // Boidのスケールを取得
-			float3 scl = float3(ss*_Size*0.3,ss*_Size*0.3,ss*_Size*4.0) * (1-cubeData.time/5);          // Boidのスケールを取得
+			float3 scl = float3(ss*_Size*0.3,ss*_Size*0.3,ss*_Size*4.0) * (1-cubeData.time/_Duration);          // Boidのスケールを取得
 
 			float4 cc1 = tex2Dlod( _MainTex, float4(_CubeDataBuffer[unity_InstanceID].uv,0,0) );
 			float4 cc2 = tex2Dlod( _MainTex2, float4(_CubeDataBuffer[unity_InstanceID].uv,0,0) );
@@ -156,16 +155,7 @@ Shader "Star"
 		// サーフェスシェーダ
 		void surf (Input IN, inout SurfaceOutputStandard o)
 		{
-			//270
-			//720
-			/*
-			float2 r = IN.uv_MainTex * float2(1.0/_Num.x,1.0/_Num.y);
-			r.x = 1.0 - r.x + 1.0/_Num.x;
-			fixed4 c1 = tex2D (_MainTex, IN.col.xy + r );//IN.col.xy + r );
-			fixed4 c2 = tex2D (_MainTex2, IN.col.xy + r );//IN.col.xy + r );
-			*/
-			
-			o.Albedo = fixed3(1,1,1);//tex2D (_MainTex, IN.col.xy).rgb;//lerp(c1.rgb,c2.rgb,_Ratio);//IN.col.xyz;//c.rgb;// * IN.color.xyz;
+			o.Albedo = fixed3(1,1,1)*_Color;//tex2D (_MainTex, IN.col.xy).rgb;//lerp(c1.rgb,c2.rgb,_Ratio);//IN.col.xyz;//c.rgb;// * IN.color.xyz;
 			o.Metallic = _Metallic;
 			//o.Emission = IN.col.xyz*0.3;
 			o.Smoothness = _Glossiness;

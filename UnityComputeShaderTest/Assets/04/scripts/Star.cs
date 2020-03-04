@@ -16,12 +16,7 @@ public class Star : MonoBehaviour{
     }
     [SerializeField] private Mover _prefab;
     [SerializeField] private Mover[] _targets;
-    [SerializeField] private Mesh _posMesh;
     [SerializeField] int _num = 10000;
-    [SerializeField] int _numX = 256; 
-    [SerializeField] int _numY = 256;
-    //[SerializeField] Texture2D _src;
-    [SerializeField] float width;
     [SerializeField,Range(0.001f,1f)] float _size;//_Size ("_Size", Range(0.04,0.1)) = 0.04
 
     int ThreadBlockSize = 64;
@@ -32,25 +27,29 @@ public class Star : MonoBehaviour{
     [SerializeField] private Mesh _mesh;
     [SerializeField] ComputeShader _computeShader;
     [SerializeField] private Material _material;
+    [SerializeField] private Color _color;
 
     private float _time = 0;
+    private float _duration = 6f;
 
     private Vector4[] _positions;
     private Vector4[] _velosities;
 
     private CubeData[] _dataArr;
+    private MaterialPropertyBlock _block;
+
     void Start(){
 
-        _targets = new Mover[100];
-        for(int i=0;i<100;i++){
+        _targets = new Mover[40];
+        for(int i=0;i<_targets.Length;i++){
             _targets[i] = Instantiate(_prefab,transform,false);
-            _targets[i].transform.position = Vector3.zero;
+            _targets[i].gameObject.SetActive(true);
+            _targets[i].transform.localPosition = Vector3.zero;
         }
         
         _prefab.gameObject.SetActive(false);
 
-        _num = _numX * _numY;
-        float height = width * (float)_numY / _numX;
+        _block=new MaterialPropertyBlock();
 
 
         //コンピュートバッファ用意
@@ -61,11 +60,8 @@ public class Star : MonoBehaviour{
         //----------初期値を設定。
         var dataArr = new CubeData[_num];
         int idx = 0;
-        for (int i = 0; i < _numX; ++i){
-            for (int j = 0; j < _numY; ++j){
+        for (int i = 0; i < _num; i++){
 
-                float rx = (float)i/(_numX-1);
-                float ry = (float)j/(_numY-1);
                 dataArr[idx] = new CubeData();
                 dataArr[idx].position = _targets[
                     idx % _targets.Length
@@ -81,7 +77,7 @@ public class Star : MonoBehaviour{
                     0.01f * ( Random.value - 0.5f )
                 );
 
-                dataArr[idx].time = Random.value*5f;
+                dataArr[idx].time = Random.value*_duration;
 
                 dataArr[idx].color = new Vector4(
                     Random.value,
@@ -90,21 +86,14 @@ public class Star : MonoBehaviour{
                     1f
                 );
 
-                dataArr[idx].uv = new Vector2(
-                    (float) i / (_numX),
-                    (float) j / (_numY)
-                );
+                dataArr[idx].uv = new Vector2();
                 idx++;
-            }
+            
         }
 
         //----------初期値をコンピュートバッファに入れる
         _dataArr=dataArr;
         _cubeDataBuffer.SetData(dataArr);
-        
-
-
-        
         
         //
         _positions = new Vector4[100];
@@ -130,6 +119,8 @@ public class Star : MonoBehaviour{
 
         int kernelId = _computeShader.FindKernel("MainCS");
         _computeShader.SetFloat("_Time", _time);
+        _computeShader.SetFloat("_Duration", _duration);
+        
         _computeShader.SetVectorArray("_Positions", _positions);
         _computeShader.SetVectorArray("_Velocities", _velosities);
         
@@ -143,13 +134,12 @@ public class Star : MonoBehaviour{
         _args[3] = (uint)_mesh.GetBaseVertex(0);
         _argsBuffer.SetData(_args);
 
-        // GPU Instaicing
-        _material.SetBuffer("_CubeDataBuffer", _cubeDataBuffer);//データを渡す
-        //_material.SetVector("_DokabenMeshScale", this._DokabenMeshScale);
-        _material.SetMatrix("_modelMatrix", transform.localToWorldMatrix );
-        _material.SetFloat("_Size",_size);
-        _material.SetVector("_Num",new Vector4(_numX,_numY,0,0));
-        
+        _block.SetBuffer("_CubeDataBuffer", _cubeDataBuffer);//データを渡す
+        _block.SetMatrix("_modelMatrix", transform.localToWorldMatrix );
+        _block.SetFloat("_Size",_size);
+        _block.SetFloat("_Duration",_duration);
+        _block.SetColor("_Color",_color);
+
         Graphics.DrawMeshInstancedIndirect(
             _mesh,
             0, 
@@ -157,13 +147,11 @@ public class Star : MonoBehaviour{
             new Bounds(Vector3.zero, new Vector3(32f, 32f, 32f)), 
             _argsBuffer,//Indirectには必要なんか
             0,
-            null,
+            _block,
             ShadowCastingMode.Off,
             false
         );
-        
-        //gameObject.transform.Rotate(new Vector3(0.01f,0.005f,0));
-
+    
     }
 
 }

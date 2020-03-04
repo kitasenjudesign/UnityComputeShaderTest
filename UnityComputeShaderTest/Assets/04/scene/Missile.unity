@@ -197,9 +197,10 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 894916473}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -1.26}
+  m_LocalPosition: {x: 0, y: 0, z: -3.28}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
+  m_Children:
+  - {fileID: 1791952672}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -295,7 +296,7 @@ Transform:
   m_LocalScale: {x: 0.05, y: 0.05, z: 0.05}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1758551044
 MonoBehaviour:
@@ -490,13 +491,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1791952670}
-  m_LocalRotation: {x: 0.25274488, y: 0, z: 0, w: 0.967533}
-  m_LocalPosition: {x: 0, y: 3, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 3, z: 1.26}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 29.28, y: 0, z: 0}
+  m_Father: {fileID: 894916476}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1952697716
 GameObject:
   m_ObjectHideFlags: 0
@@ -526,7 +527,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1952697719
 MonoBehaviour:
@@ -542,12 +543,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _prefab: {fileID: 1758551044}
   _targets: []
-  _posMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
-  _num: 5000
-  _numX: 256
-  _numY: 256
-  width: 0.45
+  _num: 40000
   _size: 0.01
   _mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   _computeShader: {fileID: 7200000, guid: 3d1bab0e2a2282c40bec9291bb6fadb4, type: 3}
   _material: {fileID: 2100000, guid: 8ee417b2545a1604daeeb6bff1142090, type: 2}
+  _color: {r: 1, g: 1, b: 1, a: 0}

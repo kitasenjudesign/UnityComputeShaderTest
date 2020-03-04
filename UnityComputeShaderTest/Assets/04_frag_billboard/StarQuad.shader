@@ -2,7 +2,7 @@ Shader "StarQuad"
 {
     Properties
     {
-        _Color ("Color", Color) = (1,1,1,1)
+        _Color ("_Color", Color) = (1,1,1,1)
 		_MainTex ("_MainTex", 2D) = "white" {}
     }
 
@@ -54,12 +54,11 @@ Shader "StarQuad"
             };
 
             StructuredBuffer<CubeData> _CubeDataBuffer;
-            float3 _DokabenMeshScale;
-
             sampler2D _MainTex;
             float4 _MainTex_ST;
             float4 _MainTex_TexelSize; 
             fixed4 _Color;
+            float _Duration;
 
             v2f vert (appdata_t v, uint instanceID : SV_InstanceID)
             {
@@ -69,7 +68,8 @@ Shader "StarQuad"
 
                 // スケールと位置(平行移動)を適用
                 float4x4 matrix_ = (float4x4)0;
-                matrix_._11_22_33_44 = float4(0.05,0.05,0.05, 1.0);//scale
+                float rr = (1-_CubeDataBuffer[instanceID].time/_Duration);
+                matrix_._11_22_33_44 = float4(0.05*rr,0.05*rr,0.05*rr, 1.0);
                 matrix_._14_24_34 += _CubeDataBuffer[instanceID].position;//translate
                 //v.vertex = mul(matrix_, v.vertex);//world座標
 
@@ -88,8 +88,9 @@ Shader "StarQuad"
 
             fixed4 frag (v2f i) : SV_Target
             {
-                fixed4 col = tex2D(_MainTex, i.texcoord) * _Color;
-                clip(col.a-0.5);
+                fixed4 col = tex2D(_MainTex, i.texcoord);
+                col.rgb *= _Color.rgb;
+                //clip(col.a-0.5);
                 return col;
             }
             ENDCG
