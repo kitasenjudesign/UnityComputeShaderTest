@@ -1,9 +1,13 @@
-Shader "StarQuad"
+Shader "ShootingStar/StarChargeQuad"
 {
     Properties
     {
-        _Color ("_Color", Color) = (1,1,1,1)
+        _Color ("Color", Color) = (1,1,1,1)
 		_MainTex ("_MainTex", 2D) = "white" {}
+        _ColTex ("_ColTex", 2D) = "white" {}
+        _GradeTex ("_GradeTex", 2D) = "white" {}
+        _Size("_Size",float) = 1
+        
     }
 
     SubShader
@@ -16,7 +20,7 @@ Shader "StarQuad"
         }
         Cull Off
         Lighting Off
-        ZWrite On
+        ZWrite ON
         Blend SrcAlpha OneMinusSrcAlpha
 
         Pass
@@ -27,6 +31,7 @@ Shader "StarQuad"
             #pragma multi_compile_instancing
 
             #include "UnityCG.cginc"
+            #include "./Easing.cginc"
 
 			// Boidの構造体
 			struct CubeData
@@ -34,7 +39,7 @@ Shader "StarQuad"
 				float3 position;
 				float3 velocity;
 				float4 color;
-				float3 basePos;
+				float timeRatio;
 				float2 uv;
 				float time;
 			};
@@ -50,31 +55,22 @@ Shader "StarQuad"
             {
                 float4 vertex : SV_POSITION;
                 float2 texcoord : TEXCOORD0;
+                float4 col : Color;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
             StructuredBuffer<CubeData> _CubeDataBuffer;
+            float3 _DokabenMeshScale;
+
             sampler2D _MainTex;
+            sampler2D _ColTex;
+            sampler2D _GradeTex;
+            
             float4 _MainTex_ST;
             float4 _MainTex_TexelSize; 
             fixed4 _Color;
             float _Duration;
-
-            // オイラー角（ラジアン）を回転行列に変換
-            float4x4 eulerAnglesToRotationMatrix(float3 angles)
-            {
-                float ch = cos(angles.y); float sh = sin(angles.y); // heading
-                float ca = cos(angles.z); float sa = sin(angles.z); // attitude
-                float cb = cos(angles.x); float sb = sin(angles.x); // bank
-
-                // Ry-Rx-Rz (Yaw Pitch Roll)
-                return float4x4(
-                    ch * ca + sh * sb * sa, -ch * sa + sh * sb * ca, sh * cb, 0,
-                    cb * sa, cb * ca, -sb, 0,
-                    -sh * ca + ch * sb * sa, sh * sa + ch * sb * ca, ch * cb, 0,
-                    0, 0, 0, 1
-                );
-            }
+            float _Size;
 
             v2f vert (appdata_t v, uint instanceID : SV_InstanceID)
             {
@@ -82,21 +78,20 @@ Shader "StarQuad"
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-                CubeData data =  _CubeDataBuffer[instanceID];
+                CubeData data = _CubeDataBuffer[instanceID];
+                float size = sin(saturate(data.timeRatio)*3.1415);//_CubeDataBuffer[instanceID].time/_Duration;
 
-                //rotate
-                float rotX = 0;
-                float rotY = 0;
-                float rotZ = data.time * 5 * (data.color.x-0.5);
-                float4x4 rotMatrix = eulerAnglesToRotationMatrix(float3(0, 0, rotZ));
-                v.vertex.xyz = mul(rotMatrix, v.vertex.xyz);
+                //だんだん小さくなっていく
+                //float s = ( 1-timeRatio );
+                //s += 0.002 * sin(timeRatio * 100 + 50 * data.color.x);
+                float s = 0.2 * size * _Size * data.uv.x;
 
-                //scale,translate
+                // スケールと位置(平行移動)を適用
                 float4x4 matrix_ = (float4x4)0;
-                float rr = (1-data.time/_Duration);
-                matrix_._11_22_33_44 = float4(0.05*rr,0.05*rr,0.05*rr, 1.0);
-                matrix_._14_24_34 += data.position;
-                
+                matrix_._11_22_33_44 = float4(s,s,s, 1.0);//scale
+                matrix_._14_24_34 += data.position;//translate
+                //v.vertex = mul(matrix_, v.vertex);//world座標
+
 				// billboard mesh towards camera
 				float3 vpos = mul((float3x3)matrix_, v.vertex.xyz);
 				float4 worldCoord = float4(matrix_._m03, matrix_._m13, matrix_._m23, 1);
@@ -104,6 +99,12 @@ Shader "StarQuad"
 				float4 outPos = mul(UNITY_MATRIX_P, viewPos);
 
                 o.vertex = outPos;
+                
+                float2 gradePos = float2(
+                    saturate( saturate(1-data.timeRatio) + 0.3*(data.color.x-0.5) ),
+                    0.5
+                );
+                o.col = float4(gradePos.xy,0,1);
                 //o.vertex = UnityObjectToClipPos(v.vertex);
                 o.texcoord = v.texcoord;
 
@@ -112,9 +113,12 @@ Shader "StarQuad"
 
             fixed4 frag (v2f i) : SV_Target
             {
-                fixed4 col = tex2D(_MainTex, i.texcoord);
-                col.rgb *= _Color.rgb;
-                //clip(col.a-0.5);
+                fixed4 grade = tex2D(_GradeTex,  i.texcoord.xy);
+                fixed4 col0=tex2D(_MainTex,  i.texcoord.xy);
+                fixed4 col = tex2D(_ColTex,  i.col.xy);
+                col.rgb = col.rgb +(pow(grade.rgb,1)*0.05);
+                //col.a = col0.a;
+                clip(col0.a-0.5);
                 return col;
             }
             ENDCG

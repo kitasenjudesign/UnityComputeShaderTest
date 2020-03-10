@@ -1,0 +1,143 @@
+#pragma kernel MainCS
+#pragma kernel Reset
+//#include "UnityCG.cginc"
+#include "SimplexNoise3Db.shader"
+
+
+// スレッドグループのスレッドサイズ
+#define ThreadBlockSize 64//256
+#define EPSILON 1e-3
+
+// data
+struct CubeData
+{
+    float3 position;
+    float3 velocity;
+    float4 color;
+    float timeRatio;
+    float2 uv;
+    float time;
+};
+
+RWStructuredBuffer<CubeData> _CubeDataBuffer;
+//float _Time;
+float _DeltaTime;
+float _Duration;
+float4 _Position;
+float4 _Velocity;
+float _Emitting;
+float _Strength;
+float _Distance;
+
+float rand(float3 co)
+{
+    return frac(sin(dot(co.xyz, float3(12.9898, 78.233, 45.5432))) * 43758.5453);
+}
+
+float3 curlNoise(float3 coord)
+{
+    float3 dx = float3(EPSILON, 0.0, 0.0);
+    float3 dy = float3(0.0, EPSILON, 0.0);
+    float3 dz = float3(0.0, 0.0, EPSILON);
+
+    float3 dpdx0 = simplexNoise(coord - dx);
+    float3 dpdx1 = simplexNoise(coord + dx);
+    float3 dpdy0 = simplexNoise(coord - dy);
+    float3 dpdy1 = simplexNoise(coord + dy);
+    float3 dpdz0 = simplexNoise(coord - dz);
+    float3 dpdz1 = simplexNoise(coord + dz);
+
+    float x = dpdy1.z - dpdy0.z + dpdz1.y - dpdz0.y;
+    float y = dpdz1.x - dpdz0.x + dpdx1.z - dpdx0.z;
+    float z = dpdx1.y - dpdx0.y + dpdy1.x - dpdy0.x;
+
+    return float3(x, y, z) / EPSILON * 2.0;
+}
+			
+float rand(float2 co)
+{
+    return frac(sin(dot(co.xy, float2(12.9898, 78.233))) * 43758.5453);
+}
+
+
+[numthreads(ThreadBlockSize, 1, 1)]
+void MainCS(uint3 id : SV_DispatchThreadID)
+{
+   
+    const unsigned int index = id.x;
+
+    CubeData data = _CubeDataBuffer[index];
+    float3 pos = data.position;
+
+    float isTail = (data.color.x<0.4) ? 0 : 1;
+    float duration = data.uv.y;//_Duration;
+
+    //emitting on(1)
+    if( data.time>duration && _Emitting==1 ){
+
+        data.time = data.time - duration;
+        //data.time = -_Duration*data.color.x;
+        data.uv.y = _Duration;
+
+        data.position.xyz =_Position.xyz;
+        
+    }else{
+        
+        data.time += _DeltaTime;
+
+    }
+
+    if( data.color.w > _Strength ){
+        data.uv.x += (0 - data.uv.x) / 10;
+    }else{
+        data.uv.x += (1 - data.uv.x) / 10;
+    }
+
+    if(data.time<=0){
+        data.timeRatio=1;
+    }else{
+        data.timeRatio = data.time/duration;
+    }
+    
+    float radius = _Distance*(0.8 + 0.2*data.color.x);
+    float theta = data.color.y * 2 * 3.1415;
+    float phi = data.color.z * 2 * 3.1415;
+    float marume = 10;
+    theta = floor( theta * marume ) / marume;
+    phi = floor( phi * marume ) / marume;
+
+    float3 startPos = float3(
+        _Position.x + (data.color.x-0.5),
+        _Position.y - 0.5,
+        _Position.z + (data.color.z-0.5)
+    );
+    float3 endPos = float3(
+        _Position.x + (data.color.x-0.5),
+        _Position.y + 1,
+        _Position.z + (data.color.z-0.5)
+    );
+
+    data.position.xyz = lerp( startPos, endPos, saturate( data.timeRatio ) );
+    
+    data.position.x += 0.2 * data.color.x * sin( 5*data.timeRatio * data.color.z );
+    data.position.z += 0.2 * data.color.y * sin( 5*data.timeRatio * data.color.w );
+    
+
+    _CubeDataBuffer[index]=data;
+
+}
+
+[numthreads(ThreadBlockSize, 1, 1)]
+void Reset(uint3 id : SV_DispatchThreadID)
+{
+
+    const unsigned int index = id.x;
+    CubeData data = _CubeDataBuffer[index];
+    data.position.xyz=float3(99999,99999,99999);
+    data.time = data.color.x < 0.4 ? data.color.y*_Duration : data.color.y*_Duration*1.5;
+ 
+    //(dataArr[i].color.x<0.4f) ? Random.value*_duration : Random.value*_duration*1.5f;
+
+    _CubeDataBuffer[index]=data;
+
+}
