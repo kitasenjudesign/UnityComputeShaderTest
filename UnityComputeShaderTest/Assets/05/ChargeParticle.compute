@@ -75,8 +75,8 @@ void MainCS(uint3 id : SV_DispatchThreadID)
     //emitting on(1)
     if( data.time>duration && _Emitting==1 ){
 
-        data.time = data.time - duration;
-        //data.time = -_Duration*data.color.x;
+        //data.time = data.time - duration;
+        data.time = -_Duration*data.color.x;
         data.uv.y = _Duration;
 
         data.position.xyz =_Position.xyz;
@@ -102,27 +102,18 @@ void MainCS(uint3 id : SV_DispatchThreadID)
     float radius = _Distance*(0.8 + 0.2*data.color.x);
     float theta = data.color.y * 2 * 3.1415;
     float phi = data.color.z * 2 * 3.1415;
-    float marume = 10;
+    float marume = 5;
     theta = floor( theta * marume ) / marume;
     phi = floor( phi * marume ) / marume;
 
     float3 startPos = float3(
-        _Position.x + (data.color.x-0.5),
-        _Position.y - 0.5,
-        _Position.z + (data.color.z-0.5)
-    );
-    float3 endPos = float3(
-        _Position.x + (data.color.x-0.5),
-        _Position.y + 1,
-        _Position.z + (data.color.z-0.5)
+        _Position.x + radius * sin(theta) * cos(phi),
+        _Position.y + radius * sin(theta) * sin(phi),
+        _Position.z + radius * cos(theta)
     );
 
-    data.position.xyz = lerp( startPos, endPos, saturate( data.timeRatio ) );
+    data.position.xyz = lerp( startPos, _Position.xyz, saturate( data.timeRatio ) );
     
-    data.position.x += 0.2 * data.color.x * sin( 5*data.timeRatio * data.color.z );
-    data.position.z += 0.2 * data.color.y * sin( 5*data.timeRatio * data.color.w );
-    
-
     _CubeDataBuffer[index]=data;
 
 }
