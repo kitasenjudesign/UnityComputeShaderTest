@@ -7,7 +7,7 @@ public class HitTestPieces : MonoBehaviour {
 
     [SerializeField] protected Mesh _mesh;
     [SerializeField] protected Material _mat;
-    [SerializeField] protected HitTestComputer _posComputer;
+    [SerializeField] protected HitTestPosComputer _posComputer;
     protected Matrix4x4[] _matrices;
     protected Vector4[] _colors;
     protected MaterialPropertyBlock _propertyBlock;

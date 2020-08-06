@@ -5,7 +5,6 @@
 // スレッドグループのスレッドサイズ
 #define ThreadBlockSize 32//64//256
 
-
 // data
 struct HitTestData
 {
@@ -20,16 +19,8 @@ RWStructuredBuffer<float3> _Result;//_DokabenDataBuffer;
 
 //Texture2D<float4> _ColorTex;
 //float _Far;
-
-float rand(float3 co)
-{
-    return frac(sin(dot(co.xyz, float3(12.9898, 78.233, 45.5432))) * 43758.5453);
-}
-			
-float rand(float2 co)
-{
-    return frac(sin(dot(co.xy, float2(12.9898, 78.233))) * 43758.5453);
-}
+float _Radius;
+float _Strength;
 
 [numthreads(ThreadBlockSize, 1, 1)]
 void MainCS(uint3 id : SV_DispatchThreadID)
@@ -47,13 +38,13 @@ void MainCS(uint3 id : SV_DispatchThreadID)
         if(i!=index){
             float3 d = data.position - _HitTestDataBuffer[i].position;
 
-            float r = length(d)/2;
+            float r = length(d)/_Radius;
             r = min(r,1);
             r = 1 - r;
 
-            data.velocity.x += 0.02 * d.x * r;
-            data.velocity.y += 0.02 * d.y * r;
-            data.velocity.z += 0.02 * d.z * r;
+            data.velocity.x += _Strength * d.x * r;
+            data.velocity.y += _Strength * d.y * r;
+            data.velocity.z += _Strength * d.z * r;
             
         }
 

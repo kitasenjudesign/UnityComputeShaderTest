@@ -4,7 +4,7 @@ using UnityEngine;
 using System.Runtime.InteropServices;
 using UnityEngine.Rendering;
 
-public class HitTestComputer : MonoBehaviour
+public class HitTestPosComputer : MonoBehaviour
 {
 
     public struct HitTestData
@@ -16,6 +16,8 @@ public class HitTestComputer : MonoBehaviour
     }
 
     [SerializeField] private ComputeShader _computeShader;
+    [SerializeField,Range(0.1f,2f)] private float _radius = 2f;
+    [SerializeField,Range(0.01f,0.1f)] private float _strength = 0.01f;
 
     int ThreadBlockSize = 32;//64;//256;
     ComputeBuffer _result;
@@ -82,12 +84,30 @@ public class HitTestComputer : MonoBehaviour
     void Update()
     {
           
+        //位置をリセットする
+        if( Input.GetKeyDown(KeyCode.Space) ){
+            
+            Debug.Log("keydown");
+
+            for(int i=0;i<_hitTestDataList.Length;i++){
+                _hitTestDataList[i].position.x = 3f*(Random.value-0.5f);
+                _hitTestDataList[i].position.y = 3f*(Random.value-0.5f);
+                _hitTestDataList[i].position.z = 3f*(Random.value-0.5f);
+
+            }
+            //セットする
+            _dataBuffer.SetData(_hitTestDataList);
+
+        }
+
+
+
         int kernelId = _computeShader.FindKernel("MainCS");
         
-        _computeShader.SetFloat("_Near", 100f );
-        _computeShader.SetFloat("_VelocityRatio",1f);
-
+        _computeShader.SetFloat("_Radius", _radius );
+        _computeShader.SetFloat("_Strength",_strength);
         //_computeShader.SetVectorArray("_Positions", _positions);
+
         _computeShader.SetBuffer(kernelId, "_Result", _result);
         _computeShader.SetBuffer(kernelId, "_HitTestDataBuffer", _dataBuffer);
         _computeShader.Dispatch(kernelId, (Mathf.CeilToInt(_num / ThreadBlockSize) + 1), 1, 1);
