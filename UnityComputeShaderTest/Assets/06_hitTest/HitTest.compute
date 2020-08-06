@@ -17,8 +17,6 @@ struct HitTestData
 RWStructuredBuffer<HitTestData> _HitTestDataBuffer;//_DokabenDataBuffer;
 RWStructuredBuffer<float3> _Result;//_DokabenDataBuffer;
 
-//Texture2D<float4> _ColorTex;
-//float _Far;
 float _Radius;
 float _Strength;
 
@@ -31,8 +29,7 @@ void MainCS(uint3 id : SV_DispatchThreadID)
     float3 pos = _HitTestDataBuffer[index].position;
     HitTestData data =_HitTestDataBuffer[index];
 
-    //反発力を計算する
-
+    //配列の長さを知る術がない？
     for(int i=0;i<1024;i++){
 
         if(i!=index){
@@ -55,13 +52,8 @@ void MainCS(uint3 id : SV_DispatchThreadID)
     data.velocity.z *= 0.9f;
 
     data.position += data.velocity;
-
-
     data.time += 0.01;
 
-    //_Result[index].y = sin( data.time );
-    //data.position.y = 5*sin( data.time );
-    
     _Result[index] = data.position;
     _HitTestDataBuffer[index]=data;
 

@@ -88,7 +88,6 @@ public class HitTestPosComputer : MonoBehaviour
         if( Input.GetKeyDown(KeyCode.Space) ){
             
             Debug.Log("keydown");
-
             for(int i=0;i<_hitTestDataList.Length;i++){
                 _hitTestDataList[i].position.x = 3f*(Random.value-0.5f);
                 _hitTestDataList[i].position.y = 3f*(Random.value-0.5f);
@@ -100,20 +99,15 @@ public class HitTestPosComputer : MonoBehaviour
 
         }
 
-
-
         int kernelId = _computeShader.FindKernel("MainCS");
         
         _computeShader.SetFloat("_Radius", _radius );
         _computeShader.SetFloat("_Strength",_strength);
-        //_computeShader.SetVectorArray("_Positions", _positions);
 
         _computeShader.SetBuffer(kernelId, "_Result", _result);
         _computeShader.SetBuffer(kernelId, "_HitTestDataBuffer", _dataBuffer);
         _computeShader.Dispatch(kernelId, (Mathf.CeilToInt(_num / ThreadBlockSize) + 1), 1, 1);
 
-        //Vector3[] rawData = new Vector3[100];
-        //_result.GetData( _rawResult );
         _dataBuffer.GetData( _hitTestDataList );
 
 
