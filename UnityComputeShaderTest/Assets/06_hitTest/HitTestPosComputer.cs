@@ -59,7 +59,6 @@ public class HitTestPosComputer : MonoBehaviour
         _dataBuffer = new ComputeBuffer(_num, Marshal.SizeOf(typeof(HitTestData)));
         
         //----------初期値を設定。
-        
         for (int i = 0; i < _num; ++i){
             _hitTestDataList[i] = new HitTestData();
             _hitTestDataList[i].time = Random.value * 100f;
