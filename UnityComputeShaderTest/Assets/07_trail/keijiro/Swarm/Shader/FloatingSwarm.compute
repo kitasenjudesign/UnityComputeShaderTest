@@ -105,8 +105,11 @@ void FloatingUpdate(uint id : SV_DispatchThreadID)
     // Retrieve the previous position and velocity.
     float3 p = PositionBuffer[id].xyz;
     float3 v = VelocityBuffer[id].xyz;
-    v = ( TargetBuffer[id].xyz-p)/float3(10,7,5);
-    v = clamp( v, -0.02,0.02);
+    
+    float3 offset = 0.004 * snoise( p.xyz + _Time.y + ColorBuffer[id] ).xyz;
+
+    v = ( offset+TargetBuffer[id].xyz - p) / float3(15,15,15);
+    //v = clamp( v, -0.02,0.02);
 
     //min(v,float3(0.01,0.01,0.01));
 

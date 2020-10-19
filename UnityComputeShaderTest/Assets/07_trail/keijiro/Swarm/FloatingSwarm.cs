@@ -8,7 +8,14 @@ namespace Swarm
 {
     public sealed class FloatingSwarm : MonoBehaviour
     {
+        
+
         #region Instancing properties
+        [SerializeField] PixelGetter _pixelGetter;
+        public PixelGetter PixelGetter {
+            get { return _pixelGetter; }
+            set { _pixelGetter = value; }
+        }
 
         [SerializeField] int _instanceCount = 1000;
 
@@ -200,6 +207,10 @@ namespace Swarm
 
         #region Public Methods
 
+
+
+        
+
         public void ResetPositions()
         {
             if (_positionBuffer != null)
@@ -290,17 +301,32 @@ namespace Swarm
         {
 
 
-            if(Input.GetKeyDown(KeyCode.D)){
+            //if(Input.GetKeyDown(KeyCode.D)){
+            if(Random.value<0.01f){
                 //
                 Debug.Log("D " + _instanceCount);
                 
+
+                var isSpred = (Random.value<0.5f) ? true : false;
+
+
                 for(int i=0;i<_instanceCount;i++){
-                    _target[i]=new Vector4(
-                        5f * (Random.value-0.5f),
-                        5f * (Random.value-0.5f),
-                        5f * (Random.value-0.5f),
-                        5f * (Random.value-0.5f)
-                    );
+                    var p = _pixelGetter.GetRandomPos();
+                    
+                    if(isSpred){
+                        _target[i]=new Vector4(
+                            p.x,p.y+1f,0,0.2f*(Random.value-0.5f)
+                        );
+                    }else{
+                        _target[i]=new Vector4(
+                            3f*(Random.value-0.5f),
+                            3f*(Random.value-0.5f) + 1f,
+                            3f*(Random.value-0.5f),
+                            0
+                        );
+
+                    }
+                    
                     _colors[i]=new Vector4(
                         Random.value,
                         Random.value,
